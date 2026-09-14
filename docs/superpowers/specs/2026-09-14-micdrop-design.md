@@ -1,7 +1,7 @@
 # MicDrop — Design Spec
 
 Date: 2026-09-14
-Status: Approved design, pending spec review
+Status: Approved 2026-09-14; localization (§9) and auto-updates (§10) added after approval
 
 ## 1. Purpose
 
@@ -21,7 +21,7 @@ MicDrop is a native macOS menu bar utility that mutes/unmutes microphone input s
 
 ## 3. Distribution variants
 
-One codebase, two build configurations selected by a Swift compilation condition.
+One codebase, two Xcode app targets sharing all sources: `MicDrop` (direct) and `MicDropAppStore`. The App Store target sets the `APPSTORE` compilation condition and does not link Sparkle.
 
 | | App Store build | Direct build |
 |---|---|---|
@@ -43,7 +43,8 @@ MicDropApp (entry, NSApplicationDelegateAdaptor)
  │    ├─ SettingsStore (UserDefaults)
  │    └─ HUDController
  ├─ StatusItemController (NSStatusItem + NSPopover hosting PopoverView)
- ├─ PreferencesWindow (SwiftUI Window scene)
+ ├─ PreferencesWindowController (NSWindow hosting SwiftUI PreferencesView)
+ ├─ Updater (Sparkle, direct build only)
  └─ TipJar (protocol) ── StoreKitTipJar (APPSTORE) / LinkTipJar (direct)
 ```
 
@@ -56,12 +57,13 @@ Thin wrapper over Core Audio HAL so logic is testable.
 - `onDevicesChanged(_ handler:)` — listeners on `kAudioHardwarePropertyDevices` and `kAudioHardwarePropertyDefaultInputDevice`
 
 ### 4.2 MicController
-- State: `isMuted: Bool`, `target: DeviceTarget` (`.default`, `.all`, `.specific(uid)`), `unsupportedDevices: [AudioDevice]`.
+- State: `isMuted: Bool`, `target: DeviceTarget` (`.defaultDevice`, `.allDevices`, `.specific(uid:)`), `unsupportedDevices: [AudioDevice]`, `availableDevices: [AudioDevice]`.
+- Keeps the user's intent (`wantsMuted`) separately from `isMuted`, so unplugging every mic and plugging one back re-mutes it.
 - `mute()`: for each target device — if `canMute` use mute property; else if `canSetVolume` save current volume (keyed by device UID) then set 0; else add to `unsupportedDevices`.
-- `unmute()`: undo exactly what `mute()` did per device (clear mute flag it set, restore saved volume). Never touches devices it didn't change.
-- `toggle()`, `setMuted(_:)`.
+- `unmute()`: undo exactly what `mute()` did per device (clear mute flag it set, restore saved volume; a saved volume of 0 restores to 1.0). Never touches devices it didn't change.
+- `toggle()`, `setMuted(_:)`, `setTarget(_:)`. `onMuteStateChanged(Bool)` fires only when `isMuted` actually changes (drives the HUD).
 - On device list change while muted: apply mute to newly present target devices. On default-device change with target `.default`: unmute old default (restore), mute new default.
-- If `.specific(uid)` device disappears: fall back to `.default`, persist the change.
+- If `.specific(uid:)` device disappears: fall back to `.defaultDevice`, persist the change.
 - `restoreAll()`: called on app termination; unmutes everything MicDrop changed.
 
 ### 4.3 HotkeyController
@@ -128,8 +130,29 @@ Thin wrapper over Core Audio HAL so logic is testable.
 6. HUD.
 7. Preferences, Launch at Login, feedback.
 8. Tip jars (StoreKit config file + link variant).
-9. App icon (original design), polish, manual checklist.
+9. Sparkle auto-updates (direct build) + GitHub release feed setup.
+10. Localization (9 languages).
+11. App icon (original design, no SF Symbols), release script, manual checklist.
 
-## 9. Out of scope
+## 9. Localization
 
-Localization beyond English, per-app muting, auto-update framework (Sparkle) for the direct build, menu bar icon customization, analytics.
+- All user-facing strings live in a single String Catalog `MicDrop/Resources/Localizable.xcstrings`; SwiftUI `Text("…")` / `String(localized:)` only — no hardcoded concatenation.
+- Languages: English (development), Spanish (`es`), French (`fr`), German (`de`), Italian (`it`), Portuguese – Brazil (`pt-BR`), Japanese (`ja`), Chinese Simplified (`zh-Hans`), Korean (`ko`).
+- `CFBundleLocalizations` lists all nine languages in both Info.plists. No `InfoPlist.xcstrings` — the display name is "MicDrop" everywhere and there are no usage strings.
+- Device names come from Core Audio and are not translated. Prices come localized from StoreKit.
+- Translations are drafted during implementation and flagged for native-speaker review before release; String Catalog state `needs_review` until confirmed.
+- Layout: popover and Preferences use flexible widths so German/French labels don't truncate; verified with `-AppleLanguages (de)` and the pseudo-language "Double-Length".
+
+## 10. Auto-updates (direct build only)
+
+- Sparkle 2 via SPM, linked only by the `MicDrop` (direct) target; Sparkle code wrapped in `#if !APPSTORE`.
+- GitHub repo `micdrop` is public but holds only the `gh-pages` branch (appcast) and Releases; the app source is never pushed there.
+- Sandboxed Sparkle setup: `SUEnableInstallerLauncherService = YES`, `SUEnableDownloaderService = NO` (network client entitlement instead), mach-lookup entitlement `$(PRODUCT_BUNDLE_IDENTIFIER)-spks` / `-spki`.
+- `SUFeedURL = https://<gh-owner>.github.io/micdrop/appcast.xml` (owner filled in once the repo exists); `SUPublicEDKey` from `generate_keys` (private key stays in the login Keychain, never committed).
+- `SUEnableAutomaticChecks = YES`, daily interval; user can "Check for Updates…" from a button in Preferences, and toggle "Automatically check for updates".
+- Release pipeline script `scripts/release-direct.sh`: archive → export Developer ID → notarize (`notarytool`) → staple → zip/dmg → `generate_appcast` → `gh release create vX.Y` with the archive → commit updated `appcast.xml` to the `gh-pages` branch.
+- App Store build: no Sparkle code, no update UI.
+
+## 11. Out of scope
+
+Per-app muting, menu bar icon customization, analytics.
