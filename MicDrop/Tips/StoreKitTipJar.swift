@@ -62,6 +62,9 @@ final class StoreKitTipJar {
         }
         guard processedTransactionIDs.insert(transaction.id).inserted else {
             await transaction.finish()
+            if status == .purchasing {
+                status = .thanks
+            }
             return
         }
         if let price = transaction.price, let currency = transaction.currency {
