@@ -107,5 +107,6 @@ schemes:
         MicDropAppStore: all
     run:
       config: Debug
+      storeKitConfiguration: Config/MicDrop.storekit
     archive:
       config: Release

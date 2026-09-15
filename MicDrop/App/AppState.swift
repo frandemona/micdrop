@@ -8,6 +8,9 @@ final class AppState {
     let hotkeys: HotkeyController
     let hud = HUDController()
     let launchAtLogin = LaunchAtLogin()
+    #if APPSTORE
+    let tipJar = StoreKitTipJar()
+    #endif
 
     init(settings: SettingsStore = SettingsStore(), hardware: AudioHardware = CoreAudioHardware()) {
         self.settings = settings

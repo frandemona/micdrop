@@ -11,6 +11,8 @@ struct PreferencesView: View {
             Text("MicDrop is free, but please leave a tip if you want to see more features!")
                 .fixedSize(horizontal: false, vertical: true)
 
+            TipsSection(appState: appState)
+
             GroupBox {
                 VStack(alignment: .leading, spacing: 8) {
                     Toggle("Show HUD on mute/unmute", isOn: $settings.showHUD)
@@ -28,6 +30,9 @@ struct PreferencesView: View {
             }
 
             HStack(spacing: 12) {
+                #if APPSTORE
+                ReviewButton()
+                #endif
                 Button("Send Feedback") { FeedbackMailer.open() }
                     .frame(maxWidth: .infinity)
             }
