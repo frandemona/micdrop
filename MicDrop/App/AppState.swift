@@ -22,9 +22,13 @@ final class AppState {
         defaults: UserDefaults = .standard
     ) {
         self.settings = settings
-        mic = MicController(hardware: hardware, target: settings.deviceTarget, defaults: defaults)
-        hotkeys = HotkeyController(handler: HotkeyModeHandler(mic: mic, mode: settings.mode))
+        let mic = MicController(hardware: hardware, target: settings.deviceTarget, defaults: defaults)
         mic.onTargetFallback = { [settings] target in settings.deviceTarget = target }
+        // A saved specific device that isn't connected at launch falls back to the default device
+        // (and is persisted) before the hotkey handler applies Push-to-talk's initial mute.
+        mic.handleDevicesChanged()
+        self.mic = mic
+        hotkeys = HotkeyController(handler: HotkeyModeHandler(mic: mic, mode: settings.mode))
         mic.onMuteStateChanged = { [weak self] isMuted in self?.muteStateDidChange(isMuted) }
     }
 

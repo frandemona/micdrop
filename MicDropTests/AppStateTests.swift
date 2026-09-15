@@ -35,6 +35,20 @@ import Testing
         #expect(SettingsStore(defaults: defaults).deviceTarget == .defaultDevice)
     }
 
+    @Test func missingSavedDeviceAtLaunchFallsBackToDefaultAndPushToTalkMutesIt() {
+        let mac = hardware.add("MacBook")
+        let saved = SettingsStore(defaults: defaults)
+        saved.deviceTarget = .specific(uid: "uid-Gone")
+        saved.mode = .pushToTalk
+
+        let state = makeState()
+        #expect(state.settings.deviceTarget == .defaultDevice)
+        #expect(SettingsStore(defaults: defaults).deviceTarget == .defaultDevice)
+        #expect(state.mic.target == .defaultDevice)
+        #expect(hardware.state(mac)?.muted == true)
+        #expect(state.mic.isMuted)
+    }
+
     @Test func changingModePersistsAndAppliesPushToTalk() {
         hardware.add("MacBook")
         let state = makeState()
