@@ -21,11 +21,15 @@ final class MicController {
     @ObservationIgnored private let hardware: AudioHardware
     @ObservationIgnored private var changes: [String: Change] = [:]
     @ObservationIgnored private var wantsMuted = false
+    /// UIDs present at the previous reconcile, used to detect devices that were unplugged and came back.
+    @ObservationIgnored private var previousPresentUIDs: Set<String>
 
     init(hardware: AudioHardware, target: DeviceTarget) {
         self.hardware = hardware
         self.target = target
-        availableDevices = hardware.inputDevices()
+        let present = hardware.inputDevices()
+        previousPresentUIDs = Set(present.map(\.uid))
+        availableDevices = present
         hardware.setDevicesChangedHandler { [weak self] in self?.handleDevicesChanged() }
     }
 
@@ -61,7 +65,10 @@ final class MicController {
         let present = hardware.inputDevices()
         availableDevices = present
         let presentUIDs = Set(present.map(\.uid))
-        changes = changes.filter { presentUIDs.contains($0.key) }
+        // Records for absent devices are kept: macOS remembers a device's mute/volume by UID,
+        // so a device unplugged while muted comes back muted and must still be restorable.
+        let returnedUIDs = presentUIDs.subtracting(previousPresentUIDs)
+        previousPresentUIDs = presentUIDs
 
         let desired = wantsMuted ? devices(for: target, in: present) : []
         let desiredUIDs = Set(desired.map(\.uid))
@@ -70,11 +77,15 @@ final class MicController {
         }
 
         var unsupported: [AudioDevice] = []
-        for device in desired where changes[device.uid] == nil {
-            if !mute(device) { unsupported.append(device) }
+        for device in desired {
+            if changes[device.uid] == nil {
+                if !mute(device) { unsupported.append(device) }
+            } else if returnedUIDs.contains(device.uid) {
+                if !reapply(device) { unsupported.append(device) }
+            }
         }
         unsupportedDevices = unsupported
-        isMuted = wantsMuted && !changes.isEmpty
+        isMuted = wantsMuted && changes.keys.contains { presentUIDs.contains($0) }
 
         if isMuted != wasMuted { onMuteStateChanged?(isMuted) }
     }
@@ -99,6 +110,23 @@ final class MicController {
                 changes[device.uid] = .volume(previous: previous)
             } else {
                 return false
+            }
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    /// Re-applies the recorded mute to a device that came back, keeping the original record
+    /// (and so the volume saved before MicDrop first muted it). Returns false when the write fails.
+    private func reapply(_ device: AudioDevice) -> Bool {
+        guard let change = changes[device.uid] else { return false }
+        do {
+            switch change {
+            case .muteFlag:
+                try hardware.setMuted(true, on: device)
+            case .volume:
+                try hardware.setVolume(0, on: device)
             }
             return true
         } catch {

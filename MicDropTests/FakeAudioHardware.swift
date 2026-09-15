@@ -40,6 +40,12 @@ final class FakeAudioHardware: AudioHardware {
         devices[index].volume = volume
     }
 
+    /// Models state changed outside MicDrop (e.g. macOS restoring a replugged device's remembered mute flag).
+    func setUserMuted(_ muted: Bool, for device: AudioDevice) {
+        guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }) else { return }
+        devices[index].muted = muted
+    }
+
     func setFailsWrites(_ fails: Bool, for device: AudioDevice) {
         guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }) else { return }
         devices[index].failsWrites = fails
