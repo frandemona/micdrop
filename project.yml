@@ -46,6 +46,7 @@ targets:
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleDisplayName: MicDrop
         NSHumanReadableCopyright: "© 2026 Zereb"
+        CFBundleLocalizations: [en, es, fr, de, it, pt-BR, ja, zh-Hans, ko]
     entitlements:
       path: Config/MicDrop-Direct.entitlements
       properties:
@@ -70,6 +71,7 @@ targets:
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleDisplayName: MicDrop
         NSHumanReadableCopyright: "© 2026 Zereb"
+        CFBundleLocalizations: [en, es, fr, de, it, pt-BR, ja, zh-Hans, ko]
     entitlements:
       path: Config/MicDrop-AppStore.entitlements
       properties:
