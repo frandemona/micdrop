@@ -41,6 +41,22 @@ xcodebuild -exportArchive -archivePath "$OUT/MicDrop.xcarchive" -exportPath "$OU
   -exportOptionsPlist "$OUT/ExportOptions.plist"
 
 APP="$OUT/export/MicDrop.app"
+APP_VERSION=$(/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" "$APP/Contents/Info.plist")
+APP_BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$APP/Contents/Info.plist")
+if [ "$APP_VERSION" != "$VERSION" ]; then
+  echo "error: exported app version is '$APP_VERSION' but project.yml MARKETING_VERSION is '$VERSION'" >&2
+  exit 1
+fi
+git fetch releases gh-pages
+PUBLISHED_BUILDS=$(git show releases/gh-pages:appcast.xml \
+  | grep -oE '<sparkle:version>[^<]+</sparkle:version>|sparkle:version="[^"]+"' \
+  | sed -E 's/<sparkle:version>([^<]+)<\/sparkle:version>/\1/; s/sparkle:version="([^"]+)"/\1/' || true)
+for BUILD in $PUBLISHED_BUILDS; do
+  if [ "$APP_BUILD" -le "$BUILD" ]; then
+    echo "error: build number $APP_BUILD is not greater than published build $BUILD — bump CURRENT_PROJECT_VERSION in project.yml" >&2
+    exit 1
+  fi
+done
 ditto -c -k --keepParent "$APP" "$OUT/notarize.zip"
 xcrun notarytool submit "$OUT/notarize.zip" --keychain-profile "$NOTARY_PROFILE" --wait
 xcrun stapler staple "$APP"
@@ -48,9 +64,12 @@ xcrun stapler staple "$APP"
 ZIP_NAME="MicDrop-$VERSION.zip"
 ditto -c -k --keepParent "$APP" "$OUT/updates/$ZIP_NAME"
 
-git fetch releases gh-pages
 git show releases/gh-pages:appcast.xml > "$OUT/updates/appcast.xml"
 GENERATE_APPCAST=$(find "$DERIVED/SourcePackages/artifacts" -name generate_appcast -type f | head -1)
+if [ -z "$GENERATE_APPCAST" ]; then
+  echo "error: Sparkle tools not found — build the MicDrop scheme once first" >&2
+  exit 1
+fi
 "$GENERATE_APPCAST" --download-url-prefix "https://github.com/$OWNER/micdrop/releases/download/v$VERSION/" "$OUT/updates"
 
 if gh release view "v$VERSION" --repo "$OWNER/micdrop" >/dev/null 2>&1; then
@@ -64,7 +83,7 @@ trap 'git -C "$ROOT" worktree remove --force "$ROOT/build/gh-pages" 2>/dev/null 
 git worktree add --detach "$ROOT/build/gh-pages" releases/gh-pages
 cp "$OUT/updates/appcast.xml" "$ROOT/build/gh-pages/appcast.xml"
 git -C "$ROOT/build/gh-pages" add appcast.xml
-git -C "$ROOT/build/gh-pages" commit -m "Appcast for v$VERSION"
+git -C "$ROOT/build/gh-pages" diff --cached --quiet || git -C "$ROOT/build/gh-pages" commit -m "Appcast for v$VERSION"
 git -C "$ROOT/build/gh-pages" push releases HEAD:gh-pages
 
 echo "Released MicDrop $VERSION"

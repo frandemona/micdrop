@@ -9,7 +9,10 @@
 5. Replace `TipConfig.directTipURL` in `MicDrop/Tips/LinkTipsView.swift` with the real tip page.
 
 ## Each release
-1. Bump `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`; commit.
+1. Bump both `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`; commit.
+   `CURRENT_PROJECT_VERSION` (the build number, `CFBundleVersion`) must increase on every release, direct and
+   App Store alike: Sparkle only offers updates with a higher build number and App Store Connect rejects
+   duplicates. The release script refuses to publish if the version doesn't match or the build isn't higher.
 2. Run `docs/qa-checklist.md` on both builds.
 3. Direct: `TEAM_ID=XXXXXXXXXX NOTARY_PROFILE=micdrop-notary scripts/release-direct.sh`
    If it fails partway, fix the cause and re-run — it reuses an existing release and cleans up its worktree.

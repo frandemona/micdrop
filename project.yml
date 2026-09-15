@@ -49,6 +49,8 @@ targets:
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleDisplayName: MicDrop
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSHumanReadableCopyright: "© 2026 Zereb"
         CFBundleLocalizations: [en, es, fr, de, it, pt-BR, ja, zh-Hans, ko]
         SUFeedURL: https://frandemona.github.io/micdrop/appcast.xml
@@ -83,6 +85,8 @@ targets:
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleDisplayName: MicDrop
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSHumanReadableCopyright: "© 2026 Zereb"
         CFBundleLocalizations: [en, es, fr, de, it, pt-BR, ja, zh-Hans, ko]
     entitlements:
