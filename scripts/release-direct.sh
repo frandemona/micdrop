@@ -8,6 +8,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
+git worktree remove --force "$ROOT/build/gh-pages" 2>/dev/null || true
+git worktree prune
+
 if grep -q "example.com/tip-micdrop" MicDrop/Tips/LinkTipsView.swift; then
   echo "error: replace TipConfig.directTipURL with the real tip page before releasing" >&2
   exit 1
@@ -50,14 +53,18 @@ git show releases/gh-pages:appcast.xml > "$OUT/updates/appcast.xml"
 GENERATE_APPCAST=$(find "$DERIVED/SourcePackages/artifacts" -name generate_appcast -type f | head -1)
 "$GENERATE_APPCAST" --download-url-prefix "https://github.com/$OWNER/micdrop/releases/download/v$VERSION/" "$OUT/updates"
 
-gh release create "v$VERSION" "$OUT/updates/$ZIP_NAME" --repo "$OWNER/micdrop" \
-  --title "MicDrop $VERSION" --notes "MicDrop $VERSION"
+if gh release view "v$VERSION" --repo "$OWNER/micdrop" >/dev/null 2>&1; then
+  gh release upload "v$VERSION" "$OUT/updates/$ZIP_NAME" --repo "$OWNER/micdrop" --clobber
+else
+  gh release create "v$VERSION" "$OUT/updates/$ZIP_NAME" --repo "$OWNER/micdrop" \
+    --title "MicDrop $VERSION" --notes "MicDrop $VERSION"
+fi
 
+trap 'git -C "$ROOT" worktree remove --force "$ROOT/build/gh-pages" 2>/dev/null || true' EXIT
 git worktree add --detach "$ROOT/build/gh-pages" releases/gh-pages
 cp "$OUT/updates/appcast.xml" "$ROOT/build/gh-pages/appcast.xml"
 git -C "$ROOT/build/gh-pages" add appcast.xml
 git -C "$ROOT/build/gh-pages" commit -m "Appcast for v$VERSION"
 git -C "$ROOT/build/gh-pages" push releases HEAD:gh-pages
-git worktree remove "$ROOT/build/gh-pages"
 
 echo "Released MicDrop $VERSION"
