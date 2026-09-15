@@ -10,6 +10,9 @@ final class AppState {
     let launchAtLogin = LaunchAtLogin()
     #if APPSTORE
     let tipJar = StoreKitTipJar()
+    #else
+    /// Set by AppDelegate so tests never start Sparkle.
+    var updater: Updater?
     #endif
 
     init(settings: SettingsStore = SettingsStore(), hardware: AudioHardware = CoreAudioHardware()) {

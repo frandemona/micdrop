@@ -12,6 +12,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Self.isRunningTests else { return }
         let appState = AppState()
+        #if !APPSTORE
+        appState.updater = Updater()
+        #endif
         let preferences = PreferencesWindowController(appState: appState)
         self.appState = appState
         preferencesWindowController = preferences

@@ -29,6 +29,12 @@ struct PreferencesView: View {
                 Text("Settings")
             }
 
+            #if !APPSTORE
+            if let updater = appState.updater {
+                UpdatesSection(updater: updater)
+            }
+            #endif
+
             HStack(spacing: 12) {
                 #if APPSTORE
                 ReviewButton()

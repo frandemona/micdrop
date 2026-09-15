@@ -38,5 +38,15 @@
 	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 Zereb</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUEnableInstallerLauncherService</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://frandemona.github.io/micdrop/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>NNAqH6PQW5nSW30TtH6wm9Yz4XA7lf/v1htQ00sjXsw=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>
