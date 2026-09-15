@@ -23,6 +23,7 @@ final class StoreKitTipJar {
     private(set) var products: [Product] = []
     private(set) var status: Status = .idle
     @ObservationIgnored private var updatesTask: Task<Void, Never>?
+    @ObservationIgnored private var processedTransactionIDs: Set<UInt64> = []
 
     init(ledger: TipLedger = TipLedger()) {
         self.ledger = ledger
@@ -57,6 +58,10 @@ final class StoreKitTipJar {
     private func handle(_ result: VerificationResult<Transaction>) async {
         guard case .verified(let transaction) = result else {
             status = .failed
+            return
+        }
+        guard processedTransactionIDs.insert(transaction.id).inserted else {
+            await transaction.finish()
             return
         }
         if let price = transaction.price, let currency = transaction.currency {
