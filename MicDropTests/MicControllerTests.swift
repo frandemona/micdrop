@@ -1,12 +1,54 @@
+import Foundation
 import Testing
 @testable import MicDrop
 
 @Suite struct MicControllerTests {
     let hardware = FakeAudioHardware()
+    let defaults = UserDefaults(suiteName: "MicControllerTests-\(UUID().uuidString)")!
+
+    private func makeController(_ target: DeviceTarget) -> MicController {
+        MicController(hardware: hardware, target: target, defaults: defaults)
+    }
+
+    @Test func restoresPersistedChangesOnRelaunchAfterCrash() {
+        let headset = hardware.add("Headset", mute: false)
+        hardware.setUserVolume(0.6, for: headset)
+        let crashed = makeController(.defaultDevice)
+        crashed.setMuted(true)
+        #expect(hardware.state(headset)?.volume == 0)
+        #expect(defaults.data(forKey: "micChangeRecords") != nil)
+
+        let relaunched = makeController(.defaultDevice)
+        #expect(hardware.state(headset)?.volume == 0.6)
+        #expect(!relaunched.isMuted)
+        let stored = defaults.data(forKey: "micChangeRecords")
+            .flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }
+        #expect(stored?.isEmpty ?? true)
+    }
+
+    @Test func persistedRecordForAbsentDeviceIsRestoredWhenItReturns() {
+        let mac = hardware.add("MacBook")
+        let headset = hardware.add("Headset", mute: false)
+        hardware.setUserVolume(0.6, for: headset)
+        let crashed = makeController(.specific(uid: headset.uid))
+        crashed.setMuted(true)
+        hardware.remove(headset)
+
+        let relaunched = makeController(.defaultDevice)
+        var events: [Bool] = []
+        relaunched.onMuteStateChanged = { events.append($0) }
+        let returned = hardware.add("Headset", mute: false)
+        hardware.setUserVolume(0, for: returned)
+        hardware.simulateDevicesChanged()
+        #expect(hardware.state(returned)?.volume == 0.6)
+        #expect(hardware.state(mac)?.muted == false)
+        #expect(!relaunched.isMuted)
+        #expect(events.isEmpty)
+    }
 
     @Test func mutesWithMuteProperty() {
         let mic = hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
 
         controller.setMuted(true)
         #expect(controller.isMuted)
@@ -21,7 +63,7 @@ import Testing
     @Test func fallsBackToVolumeAndRestoresIt() {
         let headset = hardware.add("Headset", mute: false)
         hardware.setUserVolume(0.6, for: headset)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
 
         controller.setMuted(true)
         #expect(controller.isMuted)
@@ -34,7 +76,7 @@ import Testing
     @Test func restoresFullVolumeWhenPreviousVolumeWasZero() {
         let headset = hardware.add("Headset", mute: false)
         hardware.setUserVolume(0, for: headset)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
 
         controller.setMuted(true)
         controller.setMuted(false)
@@ -43,7 +85,7 @@ import Testing
 
     @Test func toggleFlipsState() {
         hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.toggle()
         #expect(controller.isMuted)
         controller.toggle()
@@ -53,7 +95,7 @@ import Testing
     @Test func reportsUnsupportedDevicesButStaysMutedIfAnotherSucceeded() {
         hardware.add("MacBook")
         let odd = hardware.add("Odd", mute: false, volume: false)
-        let controller = MicController(hardware: hardware, target: .allDevices)
+        let controller = makeController(.allDevices)
 
         controller.setMuted(true)
         #expect(controller.isMuted)
@@ -65,7 +107,7 @@ import Testing
 
     @Test func staysUnmutedWhenEveryWriteFails() {
         let broken = hardware.add("Broken", failsWrites: true)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
 
         controller.setMuted(true)
         #expect(!controller.isMuted)
@@ -75,7 +117,7 @@ import Testing
     @Test func allDevicesTargetMutesEveryDevice() {
         let mac = hardware.add("MacBook")
         let headset = hardware.add("Headset", mute: false)
-        let controller = MicController(hardware: hardware, target: .allDevices)
+        let controller = makeController(.allDevices)
 
         controller.setMuted(true)
         #expect(hardware.state(mac)?.muted == true)
@@ -85,7 +127,7 @@ import Testing
     @Test func specificTargetOnlyMutesThatDevice() {
         let mac = hardware.add("MacBook")
         let headset = hardware.add("Headset")
-        let controller = MicController(hardware: hardware, target: .specific(uid: headset.uid))
+        let controller = makeController(.specific(uid: headset.uid))
 
         controller.setMuted(true)
         #expect(hardware.state(mac)?.muted == false)
@@ -95,7 +137,7 @@ import Testing
     @Test func changingTargetWhileMutedMovesTheMute() {
         let mac = hardware.add("MacBook")
         let headset = hardware.add("Headset")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         controller.setTarget(.specific(uid: headset.uid))
@@ -107,7 +149,7 @@ import Testing
 
     @Test func mutesDevicesPluggedInWhileMuted() {
         hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .allDevices)
+        let controller = makeController(.allDevices)
         controller.setMuted(true)
 
         let headset = hardware.add("Headset", mute: false)
@@ -118,7 +160,7 @@ import Testing
 
     @Test func followsDefaultDeviceChanges() {
         let mac = hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         let headset = hardware.add("Headset", mute: false)
@@ -131,7 +173,7 @@ import Testing
     @Test func fallsBackToDefaultWhenSpecificDeviceDisappears() {
         let mac = hardware.add("MacBook")
         let headset = hardware.add("Headset")
-        let controller = MicController(hardware: hardware, target: .specific(uid: headset.uid))
+        let controller = makeController(.specific(uid: headset.uid))
         var fallback: DeviceTarget?
         controller.onTargetFallback = { fallback = $0 }
         controller.setMuted(true)
@@ -145,7 +187,7 @@ import Testing
 
     @Test func remutesWhenDevicesReturnAfterUnplug() {
         let headset = hardware.add("Headset", mute: false)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         hardware.remove(headset)
@@ -161,7 +203,7 @@ import Testing
     @Test func restoresVolumeOfDeviceRepluggedAfterUnmutingWhileUnplugged() {
         let headset = hardware.add("Headset", mute: false)
         hardware.setUserVolume(0.6, for: headset)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         hardware.remove(headset)
@@ -177,7 +219,7 @@ import Testing
 
     @Test func restoresMuteFlagOfDeviceRepluggedAfterUnmutingWhileUnplugged() {
         let mac = hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         hardware.remove(mac)
@@ -193,7 +235,7 @@ import Testing
     @Test func keepsOriginalVolumeWhenRemutingReturnedDevice() {
         let headset = hardware.add("Headset", mute: false)
         hardware.setUserVolume(0.6, for: headset)
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         controller.setMuted(true)
 
         hardware.remove(headset)
@@ -209,7 +251,7 @@ import Testing
     @Test func isNotMutedWhileOnlyRecordedDeviceIsAbsent() {
         hardware.add("Odd", mute: false, volume: false)
         let headset = hardware.add("Headset", mute: false)
-        let controller = MicController(hardware: hardware, target: .allDevices)
+        let controller = makeController(.allDevices)
         controller.setMuted(true)
         #expect(controller.isMuted)
 
@@ -221,7 +263,7 @@ import Testing
     @Test func restoreAllUndoesEverything() {
         let mac = hardware.add("MacBook")
         let headset = hardware.add("Headset", mute: false)
-        let controller = MicController(hardware: hardware, target: .allDevices)
+        let controller = makeController(.allDevices)
         controller.setMuted(true)
 
         controller.restoreAll()
@@ -232,7 +274,7 @@ import Testing
 
     @Test func notifiesOnlyWhenMuteStateChanges() {
         hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         var events: [Bool] = []
         controller.onMuteStateChanged = { events.append($0) }
 
@@ -245,13 +287,13 @@ import Testing
     @Test func listsAvailableDevicesAtInit() {
         hardware.add("MacBook")
         hardware.add("Headset")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
         #expect(controller.availableDevices.map(\.name) == ["MacBook", "Headset"])
     }
 
     @Test func retriesRestoreThatFailed() {
         let mic = hardware.add("MacBook")
-        let controller = MicController(hardware: hardware, target: .defaultDevice)
+        let controller = makeController(.defaultDevice)
 
         controller.setMuted(true)
         #expect(hardware.state(mic)?.muted == true)

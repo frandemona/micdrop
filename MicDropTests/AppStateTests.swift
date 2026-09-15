@@ -9,7 +9,7 @@ import Testing
     private func makeState() -> AppState {
         let settings = SettingsStore(defaults: defaults)
         settings.showHUD = false
-        return AppState(settings: settings, hardware: hardware)
+        return AppState(settings: settings, hardware: hardware, defaults: defaults)
     }
 
     @Test func changingDeviceTargetPersistsAndRetargets() {

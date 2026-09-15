@@ -1,3 +1,4 @@
+import Foundation
 import Observation
 
 /// Composes the app's model objects and keeps settings and controllers in sync.
@@ -15,9 +16,13 @@ final class AppState {
     var updater: Updater?
     #endif
 
-    init(settings: SettingsStore = SettingsStore(), hardware: AudioHardware = CoreAudioHardware()) {
+    init(
+        settings: SettingsStore = SettingsStore(),
+        hardware: AudioHardware = CoreAudioHardware(),
+        defaults: UserDefaults = .standard
+    ) {
         self.settings = settings
-        mic = MicController(hardware: hardware, target: settings.deviceTarget)
+        mic = MicController(hardware: hardware, target: settings.deviceTarget, defaults: defaults)
         hotkeys = HotkeyController(handler: HotkeyModeHandler(mic: mic, mode: settings.mode))
         mic.onTargetFallback = { [settings] target in settings.deviceTarget = target }
         mic.onMuteStateChanged = { [weak self] isMuted in self?.muteStateDidChange(isMuted) }

@@ -1,9 +1,10 @@
+import Foundation
 import Observation
 
 /// Mutes the input devices selected by `target` and undoes exactly what it changed.
 @Observable
 final class MicController {
-    private enum Change {
+    nonisolated private enum Change: Codable, Sendable {
         case muteFlag
         case volume(previous: Float)
     }
@@ -18,19 +19,37 @@ final class MicController {
     /// Called only when `isMuted` actually changes.
     @ObservationIgnored var onMuteStateChanged: ((Bool) -> Void)?
 
+    private static let recordsKey = "micChangeRecords"
+
     @ObservationIgnored private let hardware: AudioHardware
-    @ObservationIgnored private var changes: [String: Change] = [:]
+    @ObservationIgnored private let defaults: UserDefaults
+    /// What MicDrop changed, keyed by device UID. Persisted on every mutation so a crash or
+    /// force-quit doesn't leave mics muted: the next launch restores them.
+    @ObservationIgnored private var changes: [String: Change] = [:] {
+        didSet { persistChanges() }
+    }
     @ObservationIgnored private var wantsMuted = false
     /// UIDs present at the previous reconcile, used to detect devices that were unplugged and came back.
     @ObservationIgnored private var previousPresentUIDs: Set<String>
 
-    init(hardware: AudioHardware, target: DeviceTarget) {
+    init(hardware: AudioHardware, target: DeviceTarget, defaults: UserDefaults = .standard) {
         self.hardware = hardware
         self.target = target
+        self.defaults = defaults
         let present = hardware.inputDevices()
         previousPresentUIDs = Set(present.map(\.uid))
         availableDevices = present
         hardware.setDevicesChangedHandler { [weak self] in self?.handleDevicesChanged() }
+
+        // Records left by a previous run that didn't restore (crash, force-quit): undo them now.
+        // wantsMuted is false, so present devices are restored and absent ones stay recorded.
+        // isMuted stays false throughout, so onMuteStateChanged never fires here.
+        if let data = defaults.data(forKey: Self.recordsKey),
+           let persisted = try? JSONDecoder().decode([String: Change].self, from: data),
+           !persisted.isEmpty {
+            changes = persisted
+            reconcile()
+        }
     }
 
     func toggle() {
@@ -114,6 +133,14 @@ final class MicController {
             return true
         } catch {
             return false
+        }
+    }
+
+    private func persistChanges() {
+        if changes.isEmpty {
+            defaults.removeObject(forKey: Self.recordsKey)
+        } else if let data = try? JSONEncoder().encode(changes) {
+            defaults.set(data, forKey: Self.recordsKey)
         }
     }
 
