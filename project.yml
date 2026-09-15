@@ -1,0 +1,111 @@
+name: MicDrop
+options:
+  bundleIdPrefix: ro.zereb
+  deploymentTarget:
+    macOS: "14.0"
+  developmentLanguage: en
+  createIntermediateGroups: true
+packages:
+  KeyboardShortcuts:
+    url: https://github.com/sindresorhus/KeyboardShortcuts
+    from: "2.3.0"
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_DEFAULT_ACTOR_ISOLATION: MainActor
+    SWIFT_APPROACHABLE_CONCURRENCY: YES
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
+    DEAD_CODE_STRIPPING: YES
+  configs:
+    Debug:
+      CODE_SIGN_STYLE: Manual
+      CODE_SIGN_IDENTITY: "-"
+    Release:
+      CODE_SIGN_STYLE: Automatic
+      ENABLE_HARDENED_RUNTIME: YES
+targets:
+  MicDrop:
+    type: application
+    platform: macOS
+    sources:
+      - path: MicDrop
+    dependencies:
+      - package: KeyboardShortcuts
+    settings:
+      base:
+        PRODUCT_NAME: MicDrop
+        PRODUCT_BUNDLE_IDENTIFIER: ro.zereb.MicDrop
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    info:
+      path: Config/Info-Direct.plist
+      properties:
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        CFBundleDisplayName: MicDrop
+        NSHumanReadableCopyright: "© 2026 Zereb"
+    entitlements:
+      path: Config/MicDrop-Direct.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+  MicDropAppStore:
+    type: application
+    platform: macOS
+    sources:
+      - path: MicDrop
+    dependencies:
+      - package: KeyboardShortcuts
+    settings:
+      base:
+        PRODUCT_NAME: MicDrop
+        PRODUCT_BUNDLE_IDENTIFIER: ro.zereb.MicDrop
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: "$(inherited) APPSTORE"
+    info:
+      path: Config/Info-AppStore.plist
+      properties:
+        LSUIElement: true
+        LSApplicationCategoryType: public.app-category.utilities
+        CFBundleDisplayName: MicDrop
+        NSHumanReadableCopyright: "© 2026 Zereb"
+    entitlements:
+      path: Config/MicDrop-AppStore.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+  MicDropTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: MicDropTests
+    dependencies:
+      - target: MicDrop
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: ro.zereb.MicDropTests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/MicDrop.app/Contents/MacOS/MicDrop"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  MicDrop:
+    build:
+      targets:
+        MicDrop: all
+        MicDropTests: [test]
+    test:
+      config: Debug
+      targets:
+        - MicDropTests
+    run:
+      config: Debug
+    archive:
+      config: Release
+  MicDropAppStore:
+    build:
+      targets:
+        MicDropAppStore: all
+    run:
+      config: Debug
+    archive:
+      config: Release

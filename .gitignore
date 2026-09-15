@@ -1,2 +1,6 @@
 spike/build/
+build/
+MicDrop.xcodeproj/
+*.xcuserstate
+.DS_Store
 .superpowers/
