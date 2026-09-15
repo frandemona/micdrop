@@ -7,12 +7,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var appState: AppState?
     private var statusItemController: StatusItemController?
+    private var preferencesWindowController: PreferencesWindowController?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard !Self.isRunningTests else { return }
         let appState = AppState()
+        let preferences = PreferencesWindowController(appState: appState)
         self.appState = appState
-        statusItemController = StatusItemController(appState: appState, openPreferences: {})
+        preferencesWindowController = preferences
+        statusItemController = StatusItemController(appState: appState) { preferences.show() }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

@@ -7,6 +7,7 @@ final class AppState {
     let mic: MicController
     let hotkeys: HotkeyController
     let hud = HUDController()
+    let launchAtLogin = LaunchAtLogin()
 
     init(settings: SettingsStore = SettingsStore(), hardware: AudioHardware = CoreAudioHardware()) {
         self.settings = settings
