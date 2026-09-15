@@ -29,7 +29,7 @@ final class StoreKitTipJar {
         self.ledger = ledger
         updatesTask = Task { [weak self] in
             for await result in Transaction.updates {
-                await self?.handle(result)
+                _ = await self?.handle(result)
             }
         }
     }
@@ -44,7 +44,7 @@ final class StoreKitTipJar {
         do {
             switch try await product.purchase() {
             case .success(let verification):
-                await handle(verification)
+                status = await handle(verification) ? .thanks : .failed
             case .userCancelled, .pending:
                 status = .idle
             @unknown default:
@@ -55,23 +55,16 @@ final class StoreKitTipJar {
         }
     }
 
-    private func handle(_ result: VerificationResult<Transaction>) async {
+    private func handle(_ result: VerificationResult<Transaction>) async -> Bool {
         guard case .verified(let transaction) = result else {
-            status = .failed
-            return
+            return false
         }
-        guard processedTransactionIDs.insert(transaction.id).inserted else {
-            await transaction.finish()
-            if status == .purchasing {
-                status = .thanks
-            }
-            return
-        }
-        if let price = transaction.price, let currency = transaction.currency {
+        if processedTransactionIDs.insert(transaction.id).inserted,
+           let price = transaction.price, let currency = transaction.currency {
             ledger.record(price, currencyCode: currency.identifier)
         }
         await transaction.finish()
-        status = .thanks
+        return true
     }
 }
 #endif
