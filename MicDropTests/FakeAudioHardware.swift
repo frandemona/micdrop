@@ -40,6 +40,11 @@ final class FakeAudioHardware: AudioHardware {
         devices[index].volume = volume
     }
 
+    func setFailsWrites(_ fails: Bool, for device: AudioDevice) {
+        guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }) else { return }
+        devices[index].failsWrites = fails
+    }
+
     func simulateDevicesChanged() { handler?() }
 
     // MARK: AudioHardware

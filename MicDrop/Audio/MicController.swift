@@ -107,12 +107,17 @@ final class MicController {
     }
 
     private func restore(_ device: AudioDevice) {
-        guard let change = changes.removeValue(forKey: device.uid) else { return }
-        switch change {
-        case .muteFlag:
-            try? hardware.setMuted(false, on: device)
-        case .volume(let previous):
-            try? hardware.setVolume(previous > 0 ? previous : 1, on: device)
+        guard let change = changes[device.uid] else { return }
+        do {
+            switch change {
+            case .muteFlag:
+                try hardware.setMuted(false, on: device)
+            case .volume(let previous):
+                try hardware.setVolume(previous > 0 ? previous : 1, on: device)
+            }
+            changes.removeValue(forKey: device.uid)
+        } catch {
+            // Keep the change record so the next reconcile() retries
         }
     }
 }

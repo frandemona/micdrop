@@ -188,4 +188,20 @@ import Testing
         let controller = MicController(hardware: hardware, target: .defaultDevice)
         #expect(controller.availableDevices.map(\.name) == ["MacBook", "Headset"])
     }
+
+    @Test func retriesRestoreThatFailed() {
+        let mic = hardware.add("MacBook")
+        let controller = MicController(hardware: hardware, target: .defaultDevice)
+
+        controller.setMuted(true)
+        #expect(hardware.state(mic)?.muted == true)
+
+        hardware.setFailsWrites(true, for: mic)
+        controller.setMuted(false)
+        #expect(hardware.state(mic)?.muted == true)
+
+        hardware.setFailsWrites(false, for: mic)
+        controller.setMuted(false)
+        #expect(hardware.state(mic)?.muted == false)
+    }
 }
