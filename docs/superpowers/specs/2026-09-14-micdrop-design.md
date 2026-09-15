@@ -146,7 +146,7 @@ Thin wrapper over Core Audio HAL so logic is testable.
 ## 10. Auto-updates (direct build only)
 
 - Sparkle 2 via SPM, linked only by the `MicDrop` (direct) target; Sparkle code wrapped in `#if !APPSTORE`.
-- GitHub repo `micdrop` is public but holds only the `gh-pages` branch (appcast) and Releases; the app source is never pushed there.
+- GitHub repo `frandemona/micdrop` is public and hosts the source (branch `feature/micdrop`), the `gh-pages` appcast and Releases.
 - Sandboxed Sparkle setup: `SUEnableInstallerLauncherService = YES`, `SUEnableDownloaderService = NO` (network client entitlement instead), mach-lookup entitlement `$(PRODUCT_BUNDLE_IDENTIFIER)-spks` / `-spki`.
 - `SUFeedURL = https://<gh-owner>.github.io/micdrop/appcast.xml` (owner filled in once the repo exists); `SUPublicEDKey` from `generate_keys` (private key stays in the login Keychain, never committed).
 - `SUEnableAutomaticChecks = YES`, daily interval; user can "Check for Updates…" from a button in Preferences, and toggle "Automatically check for updates".

@@ -16,5 +16,8 @@
 2. Run `docs/qa-checklist.md` on both builds.
 3. Direct: `TEAM_ID=XXXXXXXXXX NOTARY_PROFILE=micdrop-notary scripts/release-direct.sh`
    If it fails partway, fix the cause and re-run — it reuses an existing release and cleans up its worktree.
-4. App Store: `xcodegen generate`, open `MicDrop.xcodeproj`, scheme `MicDropAppStore`, Product › Archive,
+4. App Store: `xcodegen generate`, then `xcodebuild build -project MicDrop.xcodeproj -scheme MicDropAppStore`
+   to confirm it builds. Release uses Automatic signing with no team in `project.yml`, so after each
+   `xcodegen generate` select your team in Xcode (Signing & Capabilities, both targets) or pass
+   `DEVELOPMENT_TEAM=XXXXXXXXXX` to xcodebuild. Then open `MicDrop.xcodeproj`, scheme `MicDropAppStore`, Product › Archive,
    Distribute App › App Store Connect, then submit in App Store Connect with the IAPs attached.

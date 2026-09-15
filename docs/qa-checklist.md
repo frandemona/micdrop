@@ -13,6 +13,10 @@ Run on a team-signed Release build of each target. Keep System Settings › Soun
 - [ ] Quit while muted → all mics restored.
 - [ ] Relaunch → starts unmuted (Toggle) / muted (Push-to-talk); settings and hotkey remembered.
 
+## Build metadata
+- [ ] `lipo -info MicDrop.app/Contents/MacOS/MicDrop` shows `x86_64 arm64` for both Release builds.
+- [ ] App Info version (`CFBundleShortVersionString`, shown in the feedback subject) equals the release tag.
+
 ## HUD & Preferences
 - [ ] HUD shows state + target, click-through, fades ~1 s, works over full-screen apps; toggle off works.
 - [ ] Launch at Login on → log out/in → MicDrop running; off → not.
@@ -28,5 +32,6 @@ Run on a team-signed Release build of each target. Keep System Settings › Soun
 - [ ] Check for Updates… reports up to date; after publishing a higher version, an older build updates itself.
 
 ## Localization
-- [ ] Launch with `-AppleLanguages "(es)"`, `(de)`, `(ja)`, `(zh-Hans)`: no truncation or English leftovers.
+- [ ] Launch with `-AppleLanguages "(xx)"` for every one of `es`, `fr`, `de`, `it`, `pt-BR`, `ja`, `zh-Hans`, `ko`: no truncation or English leftovers.
+- [ ] Launch with `-NSDoubleLocalizedStrings YES`: no truncation.
 - [ ] Native-speaker review done; mark reviewed strings `translated` in Localizable.xcstrings.

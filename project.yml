@@ -82,6 +82,7 @@ targets:
     info:
       path: Config/Info-AppStore.plist
       properties:
+        ITSAppUsesNonExemptEncryption: false
         LSUIElement: true
         LSApplicationCategoryType: public.app-category.utilities
         CFBundleDisplayName: MicDrop
