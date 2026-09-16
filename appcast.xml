@@ -3,6 +3,14 @@
     <channel>
         <title>MicDrop</title>
         <item>
+            <title>1.0.1</title>
+            <pubDate>Wed, 16 Sep 2026 23:08:48 +0200</pubDate>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/frandemona/micdrop/releases/download/v1.0.1/MicDrop-1.0.1.zip" length="1766959" type="application/octet-stream" sparkle:edSignature="VRb+Vr7IGuev4NTDQTRoY2kyTOvwjZ6gc1FoqAnCo1OBvbjIOpdgzWwm494oxpk2cDz9rG6pJtwHoMmRRO3CDw=="/>
+        </item>
+        <item>
             <title>1.0.0</title>
             <pubDate>Wed, 16 Sep 2026 21:49:12 +0200</pubDate>
             <sparkle:version>1</sparkle:version>
