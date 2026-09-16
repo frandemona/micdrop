@@ -67,6 +67,8 @@ download) and **Apple Distribution** + **3rd Party Mac Developer Installer** (Ap
 | Version | Build | Direct download | App Store |
 |---|---|---|---|
 | 1.0.0 | 1 | Published 2026-09-16: notarized, stapled, [release v1.0.0](https://github.com/frandemona/micdrop/releases/tag/v1.0.0), appcast live | Submitted for review 2026-09-16 |
+| 1.0.1 | 2 | Published 2026-09-16: [release v1.0.1](https://github.com/frandemona/micdrop/releases/tag/v1.0.1); used to verify the update path | Not submitted |
 
-Not yet exercised: the Sparkle update path. Keep a copy of the 1.0.0 build, publish 1.0.1, and confirm
-the old copy offers and installs the update before relying on it.
+**Update path verified 2026-09-16.** A stashed 1.0.0 build offered 1.0.1 through "Check for Updates…"
+and installed it. The feed's EdDSA signature was also checked independently by re-signing the zip with
+Sparkle's `sign_update` and comparing it to the appcast entry (they matched, as did the byte length).
