@@ -29,6 +29,7 @@ settings:
     Release:
       CODE_SIGN_STYLE: Automatic
       ENABLE_HARDENED_RUNTIME: YES
+      DEVELOPMENT_TEAM: 333DBUCL9X
 targets:
   MicDrop:
     type: application

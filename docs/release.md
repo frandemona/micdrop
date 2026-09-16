@@ -1,12 +1,42 @@
 # Releasing MicDrop
 
 ## One-time setup
-1. Apple Developer Program membership; note your Team ID.
-2. `xcrun notarytool store-credentials micdrop-notary` (Apple ID + app-specific password).
-3. Sparkle private key is in the login Keychain (Task 10). Keep the exported backup safe.
-4. App Store Connect: create app "MicDrop", bundle ID `ro.zereb.MicDrop`; create consumable IAPs
-   `ro.zereb.MicDrop.tip.small` ($1.99), `.tip.medium` ($4.99), `.tip.large` ($9.99) with localized names.
-5. Replace `TipConfig.directTipURL` in `MicDrop/Tips/LinkTipsView.swift` with the real tip page.
+1. Apple Developer Program membership; note your Team ID (Xcode › Settings › Accounts, or the
+   parenthetical in `security find-identity -v -p codesigning`).
+2. Certificates — Xcode › Settings › Accounts › your team › Manage Certificates › **+**:
+   - **Developer ID Application** — signs the direct download (needed before notarizing).
+   - **Apple Distribution** — signs the App Store build.
+   Verify with `security find-identity -v -p codesigning`; both should be listed.
+3. `xcrun notarytool store-credentials micdrop-notary --apple-id <your Apple ID> --team-id <TEAM_ID>
+   --password <app-specific password>` — create the app-specific password at appleid.apple.com
+   (Sign-In and Security › App-Specific Passwords). Check it with `xcrun notarytool history
+   --keychain-profile micdrop-notary`.
+4. App Store Connect — create the app record and the three tip IAPs; copy from `docs/appstore-metadata.md`.
+   A Privacy Policy URL is required; that file has the policy text to publish.
+5. Sparkle private key lives in the login Keychain; keep the exported backup in a password manager.
+   Losing it means installed copies can never update again.
+6. Tip link: `TipConfig.directTipURL` in `MicDrop/Tips/LinkTipsView.swift` (set to the Ko-fi page).
+
+Signing is wired up: `project.yml` sets `DEVELOPMENT_TEAM: 333DBUCL9X` for Release, so archives pick
+the right identities without touching Xcode. Certificates in use: **Developer ID Application** (direct
+download) and **Apple Distribution** + **3rd Party Mac Developer Installer** (App Store `.pkg`).
+
+## Store assets
+
+- Listing copy, promotional text, keywords, review notes, IAP details and the privacy policy text:
+  `docs/appstore-metadata.md`.
+- Privacy policy is published at https://frandemona.github.io/micdrop/privacy.html (`privacy.html` on
+  the `gh-pages` branch).
+- Screenshots: capture a window with ⇧⌘4 then Space, then wrap it in a captioned 1280×800 canvas:
+  ```
+  swift scripts/compose-screenshot.swift ~/Desktop/capture.png build/screenshots/1-popover.png \
+    "Mute your mic from anywhere" "One hotkey. Every app. No hunting for a button." 1280
+  ```
+  Pass `2560` instead of `1280` for the larger accepted size. To capture the HUD, temporarily raise the
+  1-second hold in `MicDrop/HUD/HUDController.swift`, capture, then put it back.
+- `scripts/make-screenshots.sh` renders the same shots from the UI with no manual capture, via the
+  `ScreenshotGenerator` suite. It needs the test host to launch, so it fails while macOS is waiting on
+  a permission prompt; the manual route above always works.
 
 ## Each release
 1. Bump both `MARKETING_VERSION` and `CURRENT_PROJECT_VERSION` in `project.yml`; commit.
@@ -21,3 +51,22 @@
    `xcodegen generate` select your team in Xcode (Signing & Capabilities, both targets) or pass
    `DEVELOPMENT_TEAM=XXXXXXXXXX` to xcodebuild. Then open `MicDrop.xcodeproj`, scheme `MicDropAppStore`, Product › Archive,
    Distribute App › App Store Connect, then submit in App Store Connect with the IAPs attached.
+   The `.pkg` can also be exported headlessly and uploaded with Transporter:
+   ```
+   xcodebuild archive -project MicDrop.xcodeproj -scheme MicDropAppStore -configuration Release \
+     -archivePath build/release/MicDropAppStore.xcarchive -derivedDataPath build/release-appstore-dd \
+     DEVELOPMENT_TEAM=333DBUCL9X -allowProvisioningUpdates
+   xcodebuild -exportArchive -archivePath build/release/MicDropAppStore.xcarchive \
+     -exportPath build/release/appstore -exportOptionsPlist build/release/ExportOptionsAppStore.plist \
+     -allowProvisioningUpdates
+   ```
+   (export options: `method` `app-store-connect`, `teamID` `333DBUCL9X`, `signingStyle` `automatic`).
+
+## Release log
+
+| Version | Build | Direct download | App Store |
+|---|---|---|---|
+| 1.0.0 | 1 | Published 2026-09-16: notarized, stapled, [release v1.0.0](https://github.com/frandemona/micdrop/releases/tag/v1.0.0), appcast live | Submitted for review 2026-09-16 |
+
+Not yet exercised: the Sparkle update path. Keep a copy of the 1.0.0 build, publish 1.0.1, and confirm
+the old copy offers and installs the update before relying on it.
