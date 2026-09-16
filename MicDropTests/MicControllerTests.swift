@@ -10,6 +10,45 @@ import Testing
         MicController(hardware: hardware, target: target, defaults: defaults)
     }
 
+    @Test func remutesADeviceThatDiscardedTheWriteWhileItWasStartingUp() {
+        let headset = hardware.add("Headset")
+        let controller = makeController(.allDevices)
+        // The device reports success and drops the write, as a USB headset does while it initialises.
+        hardware.setIgnoresWrites(true, for: headset)
+
+        controller.setMuted(true)
+        #expect(hardware.state(headset)?.muted == false)
+
+        hardware.setIgnoresWrites(false, for: headset)
+        controller.handleDevicesChanged()
+        #expect(hardware.state(headset)?.muted == true)
+        #expect(controller.isMuted)
+    }
+
+    @Test func remutesADeviceSomethingElseUnmuted() {
+        let mic = hardware.add("MacBook")
+        let controller = makeController(.defaultDevice)
+        controller.setMuted(true)
+
+        hardware.setUserMuted(false, for: mic)
+        controller.handleDevicesChanged()
+        #expect(hardware.state(mic)?.muted == true)
+    }
+
+    @Test func rezerosVolumeThatDriftedBackUpAndKeepsTheOriginal() {
+        let headset = hardware.add("Headset", mute: false)
+        hardware.setUserVolume(0.6, for: headset)
+        let controller = makeController(.defaultDevice)
+        controller.setMuted(true)
+
+        hardware.setUserVolume(0.7, for: headset)
+        controller.handleDevicesChanged()
+        #expect(hardware.state(headset)?.volume == 0)
+
+        controller.setMuted(false)
+        #expect(hardware.state(headset)?.volume == 0.6)
+    }
+
     @Test func restoresPersistedChangesOnRelaunchAfterCrash() {
         let headset = hardware.add("Headset", mute: false)
         hardware.setUserVolume(0.6, for: headset)

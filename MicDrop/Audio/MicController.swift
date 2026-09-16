@@ -29,15 +29,14 @@ final class MicController {
         didSet { persistChanges() }
     }
     @ObservationIgnored private var wantsMuted = false
-    /// UIDs present at the previous reconcile, used to detect devices that were unplugged and came back.
-    @ObservationIgnored private var previousPresentUIDs: Set<String>
+    /// Re-checks queued after a device-list change, for devices that need a moment to settle.
+    @ObservationIgnored private var settleTask: Task<Void, Never>?
 
     init(hardware: AudioHardware, target: DeviceTarget, defaults: UserDefaults = .standard) {
         self.hardware = hardware
         self.target = target
         self.defaults = defaults
         let present = hardware.inputDevices()
-        previousPresentUIDs = Set(present.map(\.uid))
         availableDevices = present
         hardware.setDevicesChangedHandler { [weak self] in self?.handleDevicesChanged() }
 
@@ -77,17 +76,30 @@ final class MicController {
             onTargetFallback?(.defaultDevice)
         }
         reconcile()
+        scheduleSettleChecks()
+    }
+
+    /// A device that has just appeared can accept a write and then discard it while it finishes
+    /// initialising, and the device list doesn't change again — so re-check for a few seconds.
+    private func scheduleSettleChecks() {
+        settleTask?.cancel()
+        guard wantsMuted else { return }
+        settleTask = Task { [weak self] in
+            for delay in [0.5, 1.5, 3.0] {
+                try? await Task.sleep(for: .seconds(delay))
+                guard !Task.isCancelled, let self, self.wantsMuted else { return }
+                self.reconcile()
+            }
+        }
     }
 
     private func reconcile() {
         let wasMuted = isMuted
         let present = hardware.inputDevices()
         availableDevices = present
-        let presentUIDs = Set(present.map(\.uid))
         // Records for absent devices are kept: macOS remembers a device's mute/volume by UID,
         // so a device unplugged while muted comes back muted and must still be restorable.
-        let returnedUIDs = presentUIDs.subtracting(previousPresentUIDs)
-        previousPresentUIDs = presentUIDs
+        let presentUIDs = Set(present.map(\.uid))
 
         let desired = wantsMuted ? devices(for: target, in: present) : []
         let desiredUIDs = Set(desired.map(\.uid))
@@ -97,10 +109,15 @@ final class MicController {
 
         var unsupported: [AudioDevice] = []
         for device in desired {
-            if changes[device.uid] == nil {
-                if !mute(device) { unsupported.append(device) }
-            } else if returnedUIDs.contains(device.uid) {
-                if !reapply(device) { unsupported.append(device) }
+            if let change = changes[device.uid] {
+                // Devices lie: a mic still initialising reports a successful write and drops it, and
+                // macOS restores a replugged device's own remembered state. Enforce what MicDrop
+                // recorded rather than trusting it, keeping the original record and saved volume.
+                if !isApplied(change, on: device), !reapply(device) {
+                    unsupported.append(device)
+                }
+            } else if !mute(device) {
+                unsupported.append(device)
             }
         }
         unsupportedDevices = unsupported
@@ -141,6 +158,14 @@ final class MicController {
             defaults.removeObject(forKey: Self.recordsKey)
         } else if let data = try? JSONEncoder().encode(changes) {
             defaults.set(data, forKey: Self.recordsKey)
+        }
+    }
+
+    /// Whether the hardware still reflects the change MicDrop recorded for this device.
+    private func isApplied(_ change: Change, on device: AudioDevice) -> Bool {
+        switch change {
+        case .muteFlag: hardware.isMuted(device)
+        case .volume: hardware.volume(of: device) == 0
         }
     }
 

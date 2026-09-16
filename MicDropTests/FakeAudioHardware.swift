@@ -6,6 +6,7 @@ final class FakeAudioHardware: AudioHardware {
         var supportsMute: Bool
         var supportsVolume: Bool
         var failsWrites: Bool
+        var ignoresWrites = false
         var muted = false
         var volume: Float = 0.8
     }
@@ -46,6 +47,13 @@ final class FakeAudioHardware: AudioHardware {
         devices[index].muted = muted
     }
 
+    /// Models a device that reports success and then discards the write — what a USB headset does
+    /// while it is still initialising right after being plugged in.
+    func setIgnoresWrites(_ ignores: Bool, for device: AudioDevice) {
+        guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }) else { return }
+        devices[index].ignoresWrites = ignores
+    }
+
     func setFailsWrites(_ fails: Bool, for device: AudioDevice) {
         guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }) else { return }
         devices[index].failsWrites = fails
@@ -68,6 +76,7 @@ final class FakeAudioHardware: AudioHardware {
     private func mutate(_ device: AudioDevice, _ change: (inout FakeDevice) -> Void) throws {
         guard let index = devices.firstIndex(where: { $0.device.uid == device.uid }),
               !devices[index].failsWrites else { throw FakeError.writeFailed }
+        guard !devices[index].ignoresWrites else { return }
         change(&devices[index])
     }
 }

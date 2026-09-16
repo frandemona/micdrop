@@ -3,7 +3,7 @@ import SwiftUI
 
 enum TipConfig {
     /// Placeholder — replace with the real tip page before release. `scripts/release-direct.sh` refuses to ship it.
-    static let directTipURL = URL(string: "https://example.com/tip-micdrop")!
+    static let directTipURL = URL(string: "https://ko-fi.com/franciscozerebro")!
 }
 
 struct LinkTipsView: View {

@@ -7,6 +7,7 @@ final class StatusItemController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private let appState: AppState
+    private var outsideClickMonitor: Any?
 
     init(appState: AppState, openPreferences: @escaping () -> Void) {
         self.appState = appState
@@ -20,6 +21,7 @@ final class StatusItemController: NSObject {
         hosting.sizingOptions = .preferredContentSize
         popover.contentViewController = hosting
         popover.behavior = .transient
+        popover.delegate = self
 
         statusItem.button?.target = self
         statusItem.button?.action = #selector(togglePopover(_:))
@@ -32,7 +34,7 @@ final class StatusItemController: NSObject {
         } else {
             NSApp.activate()
             popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
-            popover.contentViewController?.view.window?.makeKey()
+            startMonitoringOutsideClicks()
         }
     }
 
@@ -48,5 +50,26 @@ final class StatusItemController: NSObject {
         )
         image?.isTemplate = true
         statusItem.button?.image = image
+    }
+
+    /// Activating an agent app keeps a transient popover open, so dismiss it on any click elsewhere.
+    private func startMonitoringOutsideClicks() {
+        guard outsideClickMonitor == nil else { return }
+        outsideClickMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            MainActor.assumeIsolated { self?.popover.performClose(nil) }
+        }
+    }
+
+    private func stopMonitoringOutsideClicks() {
+        if let outsideClickMonitor {
+            NSEvent.removeMonitor(outsideClickMonitor)
+        }
+        outsideClickMonitor = nil
+    }
+}
+
+extension StatusItemController: NSPopoverDelegate {
+    func popoverDidClose(_ notification: Notification) {
+        stopMonitoringOutsideClicks()
     }
 }

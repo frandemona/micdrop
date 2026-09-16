@@ -18,6 +18,7 @@ struct MicButton: View {
             .shadow(color: Color.accentColor.opacity(isMuted ? 0 : 0.35), radius: 8)
         }
         .buttonStyle(.plain)
+        .focusEffectDisabled()
         .accessibilityLabel(Text("Toggle microphone"))
         .accessibilityValue(isMuted ? Text("Microphone OFF") : Text("Microphone ON"))
     }
