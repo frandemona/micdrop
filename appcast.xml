@@ -1,6 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
-  <channel>
-    <title>MicDrop</title>
-  </channel>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>MicDrop</title>
+        <item>
+            <title>1.0.0</title>
+            <pubDate>Wed, 16 Sep 2026 21:49:12 +0200</pubDate>
+            <sparkle:version>1</sparkle:version>
+            <sparkle:shortVersionString>1.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/frandemona/micdrop/releases/download/v1.0.0/MicDrop-1.0.0.zip" length="1766951" type="application/octet-stream" sparkle:edSignature="669BhkRnOqTPcvYGf8bKMTNCqZjGuq0dzLrlVIfxoCeowHL3i+vx8FKXMmRXzJbRywUqPz6W9yZjzE8ixWMyBQ=="/>
+        </item>
+    </channel>
 </rss>
