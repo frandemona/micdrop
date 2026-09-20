@@ -62,6 +62,19 @@ download) and **Apple Distribution** + **3rd Party Mac Developer Installer** (Ap
    ```
    (export options: `method` `app-store-connect`, `teamID` `333DBUCL9X`, `signingStyle` `automatic`).
 
+## Packaging note
+
+Both `ditto` calls in `scripts/release-direct.sh` use `--sequesterRsrc`, which keeps AppleDouble
+metadata in a separate `__MACOSX` folder instead of `._` files inside the bundle. Without it, users who
+unpack the zip with the `unzip` command or a third-party unarchiver end up with `._` files inside
+`Sparkle.framework`, which breaks the code signature and triggers the macOS "could not verify this app
+is free of malware" dialog even though the download is correctly signed, notarized and stapled. The
+1.0.1 zip was built before this fix.
+
+To check any copy: `codesign --verify --deep --strict /Applications/MicDrop.app` and
+`spctl -a -vvv -t exec /Applications/MicDrop.app`. To repair one:
+`find /Applications/MicDrop.app -name '._*' -delete`.
+
 ## Release log
 
 | Version | Build | Direct download | App Store |

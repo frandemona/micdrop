@@ -32,7 +32,10 @@ or later · Universal (Apple silicon and Intel)
 **Mac App Store:** coming soon.
 
 **Direct download:** grab the `.zip` from the [latest release](https://github.com/frandemona/micdrop/releases/latest),
-unzip it, and drag `MicDrop.app` to your Applications folder. The app is signed with a Developer ID
+unzip it **by double-clicking it in Finder**, and drag `MicDrop.app` to your Applications folder.
+(Unpacking with the `unzip` command or some third-party unarchivers can leave stray `._` files inside
+the app bundle, which breaks its signature and makes macOS report that it can't verify the app. If you
+hit that, delete the copy and extract again with Finder.) The app is signed with a Developer ID
 certificate and notarized by Apple, so it opens without security warnings, and it updates itself through
 Sparkle.
 

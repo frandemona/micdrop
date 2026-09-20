@@ -57,12 +57,12 @@ for BUILD in $PUBLISHED_BUILDS; do
     exit 1
   fi
 done
-ditto -c -k --keepParent "$APP" "$OUT/notarize.zip"
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/notarize.zip"
 xcrun notarytool submit "$OUT/notarize.zip" --keychain-profile "$NOTARY_PROFILE" --wait
 xcrun stapler staple "$APP"
 
 ZIP_NAME="MicDrop-$VERSION.zip"
-ditto -c -k --keepParent "$APP" "$OUT/updates/$ZIP_NAME"
+ditto -c -k --sequesterRsrc --keepParent "$APP" "$OUT/updates/$ZIP_NAME"
 
 git show releases/gh-pages:appcast.xml > "$OUT/updates/appcast.xml"
 GENERATE_APPCAST=$(find "$DERIVED/SourcePackages/artifacts" -name generate_appcast -type f | head -1)
