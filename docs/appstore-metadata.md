@@ -36,7 +36,7 @@ Draft copy for the App Store listing. Edit freely; nothing here is final until y
 >
 > MicDrop never records audio, never asks for microphone access, and sends nothing anywhere.
 >
-> MicDrop is free. If it saves you from one hot-mic moment, there's a tip jar inside.
+> There's a tip jar in Preferences if MicDrop saves you from a hot-mic moment.
 
 ## Promotional Text (170 characters max)
 
@@ -95,14 +95,33 @@ Each IAP needs a screenshot for review: a capture of the Preferences window show
 
 ## Screenshots
 
-macOS requires at least one, up to ten, at 1280×800, 1440×900, 2560×1600 or 2880×1800.
+**Guideline 2.3.7: no price references, anywhere in a screenshot.** That includes the words "free",
+"tip", "discount" or any amount, in the caption *and* in the captured UI. MicDrop 1.0 build 1 was
+rejected on 2026-09-19 for a Preferences screenshot captioned "Free, and out of your way" showing the
+window's "MicDrop is free, but please leave a tip..." blurb. Never screenshot the Preferences window:
+its tip jar makes it unusable for the store. (The tip jar screenshot required for each in-app purchase
+is separate metadata and is fine there.)
 
-Suggested set:
-1. The popover open over a desktop, showing "Microphone OFF" and the settings expanded.
-2. The on-screen indicator mid-mute.
-3. The Preferences window.
+macOS accepts at least one, up to ten, at 1280x800, 1440x900, 2560x1600 or 2880x1800.
 
-Capture with ⇧⌘4 then Space to grab a window, then trim or pad to one of the sizes above.
+Approved set:
+
+| # | Shot | Headline | Subtitle |
+|---|---|---|---|
+| 1 | Popover, muted, settings expanded | Mute your mic from anywhere | One hotkey. Every app. No hunting for a button. |
+| 2 | On-screen indicator | Always know if you're live | A clear confirmation every time you mute or unmute. |
+| 3 | Popover in Push-to-talk mode (optional) | Toggle or push-to-talk | Tap to switch, or hold your key to talk and release to mute. |
+
+Capture a window with Shift-Cmd-4 then Space, then wrap it:
+
+```
+swift scripts/compose-screenshot.swift ~/Desktop/capture.png build/screenshots/1-popover.png \
+  "Mute your mic from anywhere" "One hotkey. Every app. No hunting for a button." 1280
+```
+
+`scripts/make-screenshots.sh` and the `ScreenshotGenerator` suite render the UI offscreen, but SwiftUI's
+`ImageRenderer` draws AppKit-backed controls (pickers, the hotkey recorder) as placeholder blocks, so
+their output is **not** usable for the store. Capture real windows.
 
 ## Privacy policy
 

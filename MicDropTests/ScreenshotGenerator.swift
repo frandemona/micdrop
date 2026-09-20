@@ -7,6 +7,9 @@ import Testing
 
 /// Generates App Store screenshots from the real UI, so they always match what ships.
 ///
+/// App Store guideline 2.3.7 forbids any price reference in screenshots, including the word
+/// "free" and anything about tips, so the Preferences window is deliberately not rendered here.
+///
 ///     TEST_RUNNER_MICDROP_SCREENSHOTS=1 xcodebuild test -project MicDrop.xcodeproj -scheme MicDrop \
 ///       -destination 'platform=macOS,arch=arm64' -derivedDataPath build/direct \
 ///       -only-testing:MicDropTests/ScreenshotGenerator
@@ -50,15 +53,6 @@ struct ScreenshotGenerator {
         try write(
             compose(title: "Always know if you're live", subtitle: "A glance at the menu bar, and a clear on-screen confirmation.", ui: ui),
             named: "3-hud"
-        )
-    }
-
-    @Test func preferences() throws {
-        let state = makeAppState(muted: false, mode: .toggle, expanded: false)
-        let ui = render(PreferencesView(appState: state))
-        try write(
-            compose(title: "Free, and out of your way", subtitle: "Starts at login, stays in the menu bar, collects nothing.", ui: ui),
-            named: "4-preferences"
         )
     }
 
