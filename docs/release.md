@@ -68,8 +68,8 @@ Both `ditto` calls in `scripts/release-direct.sh` use `--sequesterRsrc`, which k
 metadata in a separate `__MACOSX` folder instead of `._` files inside the bundle. Without it, users who
 unpack the zip with the `unzip` command or a third-party unarchiver end up with `._` files inside
 `Sparkle.framework`, which breaks the code signature and triggers the macOS "could not verify this app
-is free of malware" dialog even though the download is correctly signed, notarized and stapled. The
-1.0.1 zip was built before this fix.
+is free of malware" dialog even though the download is correctly signed, notarized and stapled. 1.0.2 is the first release built with it; verified by unpacking the published zip with `unzip` and
+confirming zero `._` files and a Gatekeeper `accepted` verdict.
 
 To check any copy: `codesign --verify --deep --strict /Applications/MicDrop.app` and
 `spctl -a -vvv -t exec /Applications/MicDrop.app`. To repair one:
@@ -80,7 +80,8 @@ To check any copy: `codesign --verify --deep --strict /Applications/MicDrop.app`
 | Version | Build | Direct download | App Store |
 |---|---|---|---|
 | 1.0.0 | 1 | Published 2026-09-16: notarized, stapled, [release v1.0.0](https://github.com/frandemona/micdrop/releases/tag/v1.0.0), appcast live | Submitted for review 2026-09-16 |
-| 1.0.1 | 2 | Published 2026-09-16: [release v1.0.1](https://github.com/frandemona/micdrop/releases/tag/v1.0.1); used to verify the update path | Not submitted |
+| 1.0.1 | 2 | Published 2026-09-16: [release v1.0.1](https://github.com/frandemona/micdrop/releases/tag/v1.0.1); used to verify the update path. Zip predates the `--sequesterRsrc` fix | Not submitted |
+| 1.0.2 | 3 | Published 2026-09-20: [release v1.0.2](https://github.com/frandemona/micdrop/releases/tag/v1.0.2); first zip that survives `unzip` intact | Not submitted |
 
 **Update path verified 2026-09-16.** A stashed 1.0.0 build offered 1.0.1 through "Check for Updates…"
 and installed it. The feed's EdDSA signature was also checked independently by re-signing the zip with
