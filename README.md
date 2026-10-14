@@ -2,6 +2,12 @@
 
 **Mute your microphone on macOS with one keystroke, from any app.**
 
+[![MicDrop](https://frandemona.github.io/micdrop/images/hero.jpg)](https://frandemona.github.io/micdrop/)
+
+[**Mac App Store**](https://apps.apple.com/us/app/micdrop-microphone-mute/id6812831628?mt=12) ·
+[**Direct download**](https://github.com/frandemona/micdrop/releases/latest) ·
+[**micdrop website**](https://frandemona.github.io/micdrop/)
+
 MicDrop is a small menu bar utility that mutes and unmutes your Mac's microphone system-wide. Press a
 global hotkey and every microphone you choose goes silent, whatever app is in front: Zoom, Google Meet,
 Teams, Slack, Discord, QuickTime, OBS, anything. The menu bar icon and a brief on-screen indicator
@@ -10,8 +16,7 @@ always tell you whether you are live.
 It mutes at the hardware level through Core Audio, so apps receive silence rather than a polite request
 to stop listening. MicDrop never records audio and never asks for microphone permission.
 
-[Download the latest release](https://github.com/frandemona/micdrop/releases/latest) · macOS 14 Sonoma
-or later · Universal (Apple silicon and Intel)
+macOS 14 Sonoma or later · Universal (Apple silicon and Intel) · Free
 
 ## Features
 
@@ -29,7 +34,7 @@ or later · Universal (Apple silicon and Intel)
 
 ## Install
 
-**Mac App Store:** coming soon.
+**Mac App Store:** [MicDrop - Microphone Mute](https://apps.apple.com/us/app/micdrop-microphone-mute/id6812831628?mt=12). Installs and updates like any other App Store app.
 
 **Direct download:** grab the `.zip` from the [latest release](https://github.com/frandemona/micdrop/releases/latest),
 unzip it **by double-clicking it in Finder**, and drag `MicDrop.app` to your Applications folder.

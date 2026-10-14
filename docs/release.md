@@ -75,11 +75,25 @@ To check any copy: `codesign --verify --deep --strict /Applications/MicDrop.app`
 `spctl -a -vvv -t exec /Applications/MicDrop.app`. To repair one:
 `find /Applications/MicDrop.app -name '._*' -delete`.
 
+## Web
+
+The `gh-pages` branch serves the product site at https://frandemona.github.io/micdrop/ alongside
+`privacy.html` and `appcast.xml`. Images live in `images/`; the hero is built with
+`scripts/compose-screenshot.swift` and the in-use shots with `scripts/fit-screenshot.swift`. To update
+it, check the branch out in a worktree, edit, and push:
+
+```
+git worktree add --detach build/gh-pages releases/gh-pages
+# edit build/gh-pages/index.html
+git -C build/gh-pages commit -am "Update landing page" && git -C build/gh-pages push releases HEAD:gh-pages
+git worktree remove build/gh-pages
+```
+
 ## Release log
 
 | Version | Build | Direct download | App Store |
 |---|---|---|---|
-| 1.0.0 | 1 | Published 2026-09-16: notarized, stapled, [release v1.0.0](https://github.com/frandemona/micdrop/releases/tag/v1.0.0), appcast live | Submitted for review 2026-09-16 |
+| 1.0.0 | 1 | Published 2026-09-16: notarized, stapled, [release v1.0.0](https://github.com/frandemona/micdrop/releases/tag/v1.0.0), appcast live | **Approved and live** as [MicDrop - Microphone Mute](https://apps.apple.com/us/app/micdrop-microphone-mute/id6812831628?mt=12) after two metadata rejections (2.3.7 price reference, 2.3.3 marketing screenshots) |
 | 1.0.1 | 2 | Published 2026-09-16: [release v1.0.1](https://github.com/frandemona/micdrop/releases/tag/v1.0.1); used to verify the update path. Zip predates the `--sequesterRsrc` fix | Not submitted |
 | 1.0.2 | 3 | Published 2026-09-20: [release v1.0.2](https://github.com/frandemona/micdrop/releases/tag/v1.0.2); first zip that survives `unzip` intact | Not submitted |
 
