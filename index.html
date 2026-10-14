@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MicDrop — Mute your Mac microphone with one hotkey</title>
+<meta name="description" content="MicDrop is a macOS menu bar app that mutes your microphone system-wide with a global hotkey. Toggle or push-to-talk, every mic or just one, with clear on-screen feedback.">
+<link rel="icon" href="images/icon.png">
+<meta property="og:title" content="MicDrop — Mute your Mac microphone with one hotkey">
+<meta property="og:description" content="A macOS menu bar app that mutes your microphone system-wide, from any app, with a global hotkey.">
+<meta property="og:image" content="https://frandemona.github.io/micdrop/images/hero.jpg">
+<meta property="og:url" content="https://frandemona.github.io/micdrop/">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1d1d1f;
+    --muted: #6e6e73;
+    --accent: #0a66e0;
+    --card: #f5f5f7;
+    --line: #e3e3e6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000000; --fg: #f5f5f7; --muted: #a1a1a6; --accent: #4d9bff; --card: #1c1c1e; --line: #2c2c2e; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 0 24px; }
+  header { text-align: center; padding: 72px 0 40px; }
+  header img.icon { width: 128px; height: 128px; }
+  h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); margin: 18px 0 8px; letter-spacing: -0.02em; }
+  .tagline { font-size: clamp(1.1rem, 2.6vw, 1.45rem); color: var(--muted); margin: 0 auto 28px; max-width: 34ch; }
+  .buttons { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-block; padding: 13px 26px; border-radius: 980px; text-decoration: none;
+    font-weight: 600; font-size: 1rem; border: 1px solid transparent;
+  }
+  .btn.primary { background: var(--accent); color: #fff; }
+  .btn.secondary { border-color: var(--line); color: var(--fg); }
+  .btn:hover { opacity: .88; }
+  .fineprint { color: var(--muted); font-size: .9rem; margin-top: 16px; }
+  figure { margin: 48px 0; }
+  figure img { width: 100%; border-radius: 14px; border: 1px solid var(--line); display: block; }
+  figcaption { color: var(--muted); font-size: .92rem; text-align: center; margin-top: 10px; }
+  h2 { font-size: 1.6rem; margin: 64px 0 20px; letter-spacing: -0.01em; }
+  .features { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); padding: 0; list-style: none; margin: 0; }
+  .features li { background: var(--card); border-radius: 14px; padding: 20px 22px; }
+  .features strong { display: block; margin-bottom: 4px; }
+  .features span { color: var(--muted); font-size: .96rem; }
+  .note { background: var(--card); border-radius: 14px; padding: 22px 24px; color: var(--muted); }
+  .note strong { color: var(--fg); }
+  footer { border-top: 1px solid var(--line); margin-top: 72px; padding: 32px 0 60px; color: var(--muted); font-size: .92rem; text-align: center; }
+  a { color: var(--accent); }
+  footer a { margin: 0 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img class="icon" src="images/icon.png" alt="MicDrop icon">
+    <h1>MicDrop</h1>
+    <p class="tagline">Mute your Mac's microphone with one keystroke, from any app.</p>
+    <div class="buttons">
+      <a class="btn primary" href="https://apps.apple.com/us/app/micdrop-microphone-mute/id6812831628?mt=12">Mac App Store</a>
+      <a class="btn secondary" href="https://github.com/frandemona/micdrop/releases/latest">Direct download</a>
+    </div>
+    <p class="fineprint">Free · macOS 14 Sonoma or later · Apple silicon and Intel · Notarized by Apple</p>
+  </header>
+
+  <figure>
+    <img src="images/hero.jpg" alt="MicDrop's menu bar popover showing the microphone muted">
+  </figure>
+
+  <h2>What it does</h2>
+  <ul class="features">
+    <li><strong>One hotkey, anywhere</strong><span>Mute and unmute without leaving the app you're in. Zoom, Meet, Teams, Discord, OBS, anything.</span></li>
+    <li><strong>Toggle or push-to-talk</strong><span>Tap to switch states, or hold your key to talk and release to go quiet again.</span></li>
+    <li><strong>Every mic, or just one</strong><span>Mute the system default, a specific microphone, or all connected inputs at once.</span></li>
+    <li><strong>You always know</strong><span>The menu bar icon shows the current state and an on-screen indicator confirms every change.</span></li>
+    <li><strong>Muted at the hardware level</strong><span>Apps receive silence, rather than a polite request to stop listening.</span></li>
+    <li><strong>Handles real life</strong><span>Plug a headset in while muted and it is muted too. Force-quit while muted and the next launch restores your mics.</span></li>
+  </ul>
+
+  <h2>In use</h2>
+  <figure>
+    <img src="images/2-indicator.jpg" alt="MicDrop's on-screen indicator showing the microphone is on">
+    <figcaption>A brief on-screen confirmation every time the state changes.</figcaption>
+  </figure>
+  <figure>
+    <img src="images/3-device-menu.jpg" alt="MicDrop's device menu listing the connected microphones">
+    <figcaption>Choose the default input, one specific microphone, or all of them.</figcaption>
+  </figure>
+
+  <h2>Privacy</h2>
+  <div class="note">
+    <p><strong>MicDrop collects nothing.</strong> It never records audio and never asks for microphone
+    access: it only changes the mute and input-volume settings of the devices you pick. No analytics, no
+    accounts, no tracking. The direct download checks GitHub for updates; the Mac App Store version makes
+    no network requests at all.</p>
+    <p style="margin-bottom:0"><a href="privacy.html">Read the privacy policy</a></p>
+  </div>
+
+  <h2>Why it exists</h2>
+  <p style="color:var(--muted)">MicDrop replaces
+  <a href="https://apps.apple.com/us/app/mutekey/id1509590766">MuteKey</a>, which is Intel-only and stops
+  working once macOS drops Rosetta support. Same idea, rebuilt natively for Apple silicon: one key, mic off.</p>
+
+  <footer>
+    <p>
+      <a href="https://github.com/frandemona/micdrop">Source on GitHub</a>
+      <a href="https://apps.apple.com/us/app/micdrop-microphone-mute/id6812831628?mt=12">Mac App Store</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="mailto:francisco@zereb.ro">Support</a>
+    </p>
+    <p>© 2026 Zereb</p>
+  </footer>
+
+</div>
+</body>
+</html>
